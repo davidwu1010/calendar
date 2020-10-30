@@ -30,6 +30,9 @@ public class EventController {
     @PostMapping
     public ResponseEntity<EventEntity> createEvent(@RequestBody EventEntity event,
         @RequestAttribute String userId) {
+        if (event.getEndDate() != null && !event.getEndDate().after(event.getStartDate())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
         event.setUserId(userId);
         eventService.save(event);
         return ResponseEntity.status(HttpStatus.CREATED).body(event);
@@ -41,11 +44,14 @@ public class EventController {
     }
 
     @PutMapping
-    public ResponseEntity<Object> updateEvent(@RequestBody EventEntity event,
+    public ResponseEntity<EventEntity> updateEvent(@RequestBody EventEntity event,
         @RequestAttribute String userId) {
+        if (event.getEndDate() != null && !event.getEndDate().after(event.getStartDate())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
         if (event.getUserId().equals(userId)) {
             eventService.save(event);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.OK).body(event);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }

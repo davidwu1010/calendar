@@ -8,7 +8,7 @@ import {
   signOutSuccess,
   signOutFailure,
   signUpSuccess,
-  signUpFailure
+  signUpFailure, check
 } from './user.actions';
 
 import {
@@ -37,7 +37,7 @@ export function* signInWithGoogle() {
     const { user } = yield auth.signInWithPopup(googleProvider);
     yield getSnapshotFromUserAuth(user);
   } catch (error) {
-    yield put(signInFailure(error));
+    alert(error);
   }
 }
 
@@ -46,6 +46,7 @@ export function* signInWithEmail({ payload: { email, password } }) {
     const { user } = yield auth.signInWithEmailAndPassword(email, password);
     yield getSnapshotFromUserAuth(user);
   } catch (error) {
+    alert(error);
     yield put(signInFailure(error));
   }
 }
@@ -53,10 +54,15 @@ export function* signInWithEmail({ payload: { email, password } }) {
 export function* isUserAuthenticated() {
   try {
     const userAuth = yield getCurrentUser();
-    if (!userAuth) return;
+    if (!userAuth) {
+      yield put(check());
+      return;
+    }
     yield getSnapshotFromUserAuth(userAuth);
+    yield put(check());
   } catch (error) {
     yield put(signInFailure(error));
+    yield put(check());
   }
 }
 
@@ -75,6 +81,7 @@ export function* signUp({ payload: { email, password, displayName } }) {
     yield put(signUpSuccess({ user, additionalData: { displayName } }));
   } catch (error) {
     yield put(signUpFailure(error));
+    alert(error);
   }
 }
 

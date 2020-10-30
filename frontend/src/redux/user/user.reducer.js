@@ -2,7 +2,8 @@ import UserActionTypes from './user.types';
 
 const INITIAL_STATE = {
   currentUser: null,
-  error: null
+  error: null,
+  checked: false,
 };
 
 const userReducer = (state = INITIAL_STATE, action) => {
@@ -18,6 +19,11 @@ const userReducer = (state = INITIAL_STATE, action) => {
         ...state,
         currentUser: null,
         error: null
+      };
+    case UserActionTypes.CHECK:
+      return {
+        ...state,
+        checked: true
       };
     case UserActionTypes.SIGN_IN_FAILURE:
     case UserActionTypes.SIGN_OUT_FAILURE:

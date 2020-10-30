@@ -3,6 +3,7 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 import userReducer from './user/user.reducer';
+import eventsReducer from './events/events.reducer';
 
 const persistConfig = {
   key: 'calendar',
@@ -12,6 +13,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   user: userReducer,
+  events: eventsReducer,
 });
 
 export default persistReducer(persistConfig, rootReducer);

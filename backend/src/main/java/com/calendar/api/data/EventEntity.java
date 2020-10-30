@@ -1,7 +1,7 @@
 package com.calendar.api.data;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -20,14 +20,14 @@ public class EventEntity {
     private String userId;
     @Column(nullable=false)
     private Date startDate;
-    @Column
+    @Column(nullable=false)
     private Date endDate;
+    @Column(nullable=false)
+    private String title = "";
     @Column
-    private String title;
-    @Column
-    private boolean appointmentSlot;
+    private boolean appointmentSlot = false;
     @ElementCollection
-    private List<String> invitees;
+    private Map<String, String> invitees;
 
     public long getId() {
         return id;
@@ -77,11 +77,11 @@ public class EventEntity {
         this.appointmentSlot = appointmentSlot;
     }
 
-    public List<String> getInvitees() {
+    public Map<String, String> getInvitees() {
         return invitees;
     }
 
-    public void setInvitees(List<String> invitees) {
+    public void setInvitees(Map<String, String> invitees) {
         this.invitees = invitees;
     }
 }

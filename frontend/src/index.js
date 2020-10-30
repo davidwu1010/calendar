@@ -7,15 +7,20 @@ import { Provider } from 'react-redux';
 import { store, persistor } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { BrowserRouter } from 'react-router-dom';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DayjsUtils from '@date-io/dayjs';
+
 
 ReactDOM.render(
-    <BrowserRouter>
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
+  <BrowserRouter>
+    <Provider store={store}>
+      <PersistGate persistor={persistor}>
+        <MuiPickersUtilsProvider utils={DayjsUtils}>
           <App />
-        </PersistGate>
-      </Provider>
-    </BrowserRouter>,
+        </MuiPickersUtilsProvider>
+      </PersistGate>
+    </Provider>
+  </BrowserRouter>,
   document.getElementById('root')
 );
 
