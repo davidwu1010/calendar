@@ -1,6 +1,7 @@
 package com.calendar.api.data;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -27,7 +28,7 @@ public class EventEntity {
     @Column
     private boolean appointmentSlot = false;
     @ElementCollection
-    private Map<String, String> invitees;
+    private Map<String, String> invitees = new HashMap<>();
 
     public long getId() {
         return id;

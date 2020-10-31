@@ -8,7 +8,7 @@ import { DialogActions, Button, Grid, TextField } from '@material-ui/core';
 import { DatePicker } from '@material-ui/pickers';
 import { DataGrid } from '@material-ui/data-grid';
 import { createStructuredSelector } from 'reselect';
-import { selectEvents } from './redux/events/events.selector';
+import { selectEvents } from '../redux/events/events.selector';
 import { connect } from 'react-redux';
 import dayjs from 'dayjs';
 import LocalizedFormat from 'dayjs/plugin/localizedFormat';

@@ -50,6 +50,9 @@ public class EventController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         if (event.getUserId().equals(userId)) {
+            if (!event.isAppointmentSlot() && event.getInvitees() != null) {
+                event.getInvitees().clear();
+            }
             eventService.save(event);
             return ResponseEntity.status(HttpStatus.OK).body(event);
         } else {

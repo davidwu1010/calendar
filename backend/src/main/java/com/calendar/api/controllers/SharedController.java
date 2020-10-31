@@ -39,7 +39,11 @@ public class SharedController {
         @RequestAttribute String userId) {
 
         EventEntity event = eventService.findById(eventId);
-        if (event == null || !event.getUserId().equals(shareId)) {
+        if (event == null || !event.isAppointmentSlot() || !event.getUserId().equals(shareId)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        if (request != null && request.getName() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
 

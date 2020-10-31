@@ -3,9 +3,7 @@ import { useEffect, useState } from 'react';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import { EditingState, IntegratedEditing, ViewState } from '@devexpress/dx-react-scheduler';
-import {
-  useParams
-} from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   Scheduler,
   WeekView,
@@ -18,18 +16,17 @@ import {
   MonthView,
   AppointmentTooltip,
   CurrentTimeIndicator,
-  AppointmentForm,
-  Resources
+  AppointmentForm, Resources,
 } from '@devexpress/dx-react-scheduler-material-ui';
 import FabPanel from './FabPanel';
 import ToolbarAddon from './ToolbarAddon';
 import axios from 'axios';
-import { auth } from './firebase/firebase.utils';
+import { auth } from '../firebase/firebase.utils';
 import { createStructuredSelector } from 'reselect';
-import { selectEvents } from './redux/events/events.selector';
-import { setEvents } from './redux/events/events.actions';
+import { selectEvents } from '../redux/events/events.selector';
+import { setEvents } from '../redux/events/events.actions';
 import { connect } from 'react-redux';
-import TooltipHeader from './TootipHeader';
+import { useSnackbar } from 'notistack';
 
 
 const TextEditor = (props) => {
@@ -41,6 +38,7 @@ const TextEditor = (props) => {
 };
 
 const BasicLayout = ({ onFieldChange, appointmentData, ...restProps }) => {
+  const location = useLocation();
   const onCustomFieldChange = (nextValue) => {
     onFieldChange({ appointmentSlot: nextValue });
     setAppointmentSlot(nextValue);
@@ -56,7 +54,7 @@ const BasicLayout = ({ onFieldChange, appointmentData, ...restProps }) => {
       <Grid container direction="row">
         <AppointmentForm.BooleanEditor value={appointmentSlot} label="Appointment slots"
                                        onValueChange={onCustomFieldChange}
-                                       readOnly />
+                                       readOnly={location.pathname.startsWith('/share/')} />
       </Grid>
     </AppointmentForm.BasicLayout>
   );
@@ -73,13 +71,19 @@ const Appointment = ({ children, style, data, ...restProps }) => (
   </Appointments.Appointment>
 );
 
+const Label = props => {
+  if (props.text === 'Members') {
+    return null;
+  }
+  return <AppointmentForm.Label {...props} />;
+};
 
-const SharedCalendar = ({ events, setEvents, match }) => {
-  const { shareId } = useParams();
+const Calendar = ({ events, setEvents, share }) => {
+  const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
       const fetchEvents = async () => {
         const token = await auth.currentUser.getIdToken(true);
-        const response = await axios.get(`/api/shared/${shareId}/events/`, {
+        const response = await axios.get('/api/events/', {
           headers: {
             Authorization: 'Bearer ' + token
           }
@@ -127,6 +131,95 @@ const SharedCalendar = ({ events, setEvents, match }) => {
     setResources(resources);
   }, [events]);
 
+  const changesHandler = async change => {
+    const { added, changed, deleted } = change;
+    const token = await auth.currentUser.getIdToken(true);
+    const headers = {
+      Authorization: 'Bearer ' + token
+    };
+
+    if (added) {
+      if (Date.parse(added.startDate) >= Date.parse(added.endDate)) {
+        alert('End date must be after start date');
+        return;
+      }
+
+      if (!added.title) {
+        alert('Title cannot be empty');
+        return;
+      }
+
+      console.log(added);
+      if (!added.startDate || added.startDate.toString() === 'Invalid Date') {
+        alert('Illegal start date');
+        return;
+      }
+
+      if (!added.endDate || added.endDate.toString() === 'Invalid Date') {
+        alert('Illegal end date');
+        return;
+      }
+
+      try {
+        const response = await axios.post('/api/events/',
+          added,
+          {
+            headers: headers
+          });
+        const addedEvent = response.data;
+        Object.defineProperty(addedEvent, 'members', {
+          get: function () {
+            return Object.keys(this.invitees);
+          }
+        });
+        setEvents([...events, addedEvent]);
+        enqueueSnackbar('Event added.', {
+          variant: 'success'
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (changed) {
+      const id = parseInt(Object.keys(changed)[0]);
+      const updatedEvent = { ...events.find(event => event.id === id), ...changed[id] };
+      if (Date.parse(updatedEvent.startDate) >= Date.parse(updatedEvent.endDate)) {
+        alert('End date must be after start date');
+        return;
+      }
+      try {
+        const response = await axios.put('/api/events/', updatedEvent, {
+          headers: headers
+        });
+        const changedEvent = response.data;
+        Object.defineProperty(changedEvent, 'members', {
+          get: function () {
+            return Object.keys(this.invitees);
+          }
+        });
+        setEvents(events.map(event => event.id === changedEvent.id ? changedEvent : event));
+        enqueueSnackbar('Event updated.', {
+          variant: 'success'
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (deleted !== undefined) {
+      try {
+        await axios.delete('/api/events/' + deleted, {
+          headers: headers
+        });
+        setEvents(events.filter(event => event.id !== deleted));
+        enqueueSnackbar('Event deleted.', {
+          variant: 'success'
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
   return (
     <Paper style={{ height: '100vh' }}>
       <Scheduler
@@ -136,8 +229,7 @@ const SharedCalendar = ({ events, setEvents, match }) => {
           defaultCurrentViewName="Week"
         />
         <EditingState
-          onCommitChanges={() => {
-          }}
+          onCommitChanges={changesHandler}
         />
         <IntegratedEditing />
         <DayView
@@ -158,22 +250,27 @@ const SharedCalendar = ({ events, setEvents, match }) => {
           appointmentComponent={Appointment}
         />
         <AppointmentTooltip
-          headerComponent={TooltipHeader}
-        />
-        <Resources
-          data={resources}
-          mainResourceName="members"
+          showOpenButton={!share}
+          showCloseButton
+          showDeleteButton={!share}
         />
         <CurrentTimeIndicator />
         <AppointmentForm
           basicLayoutComponent={BasicLayout}
           textEditorComponent={TextEditor}
           booleanEditorComponent={() => null}
-          visible={false}
+          resourceEditorComponent={() => null}
+          labelComponent={Label}
+          visible={!share && formVisible}
           onVisibilityChange={visible => setFormVisible(visible)}
-          readOnly
+          readOnly={share}
+        />
+        <Resources
+          data={resources}
+          mainResourceName="members"
         />
       </Scheduler>
+
       <FabPanel onCreate={() => setFormVisible(true)} />
     </Paper>
   );
@@ -187,4 +284,4 @@ const mapDispatchToProps = dispatch => ({
   setEvents: events => dispatch(setEvents(events))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SharedCalendar);
+export default connect(mapStateToProps, mapDispatchToProps)(Calendar);

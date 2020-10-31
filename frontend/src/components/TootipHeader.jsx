@@ -1,19 +1,22 @@
 import { useParams } from 'react-router-dom';
-import { auth } from './firebase/firebase.utils';
+import { auth } from '../firebase/firebase.utils';
 import axios from 'axios';
 import { AppointmentTooltip } from '@devexpress/dx-react-scheduler-material-ui';
 import Button from '@material-ui/core/Button';
 import * as React from 'react';
 import { createStructuredSelector } from 'reselect';
-import { selectEvents } from './redux/events/events.selector';
-import { selectDisplayName, selectUid } from './redux/user/user.selectors';
+import { selectEvents } from '../redux/events/events.selector';
+import { selectDisplayName, selectUid } from '../redux/user/user.selectors';
 import { connect } from 'react-redux';
-import { setEvents } from './redux/events/events.actions';
-import { useState } from 'react';
+import { setEvents } from '../redux/events/events.actions';
+import { useReducer, useState } from 'react';
+import { useSnackbar } from 'notistack';
 
 const TooltipHeader = ({ uid, events, setEvents, displayName, appointmentData, children, showCloseButton, ...restProps }) => {
   const { shareId } = useParams();
   const [booked, setBooked] = useState(appointmentData.invitees[uid] !== undefined);
+  const { enqueueSnackbar } = useSnackbar();
+
 
   const bookHandler = async () => {
     const token = await auth.currentUser.getIdToken(true);
@@ -33,8 +36,9 @@ const TooltipHeader = ({ uid, events, setEvents, displayName, appointmentData, c
           return Object.keys(this.invitees);
         }
       });
-      setEvents(events.map(event => event.id === response.data.id ? updateEvent : event));
+      setEvents(events.map(event => event.id === updateEvent.id ? updateEvent : event));
       setBooked(true);
+      enqueueSnackbar('Slot booked', { variant: 'success' });
     } catch (e) {
       alert(e);
     }
@@ -59,6 +63,7 @@ const TooltipHeader = ({ uid, events, setEvents, displayName, appointmentData, c
         }
       });
       setEvents(events.map(event => event.id === response.data.id ? updateEvent : event));
+      enqueueSnackbar('Slot canceled', { variant: 'success' });
       setBooked(false);
     } catch (e) {
       alert(e);
@@ -72,27 +77,31 @@ const TooltipHeader = ({ uid, events, setEvents, displayName, appointmentData, c
       {...restProps}
     >
       {
-        booked
+        appointmentData.appointmentSlot
           ?
-          <Button
-            size="small"
-            color="primary"
-            variant="contained"
-            style={{ margin: 6 }}
-            onClick={cancelHandler}
-          >
-            Cancel
-          </Button>
+          booked
+            ?
+            <Button
+              size="small"
+              color="primary"
+              variant="contained"
+              style={{ margin: 6 }}
+              onClick={cancelHandler}
+            >
+              Cancel
+            </Button>
+            :
+            <Button
+              size="small"
+              color="primary"
+              variant="contained"
+              style={{ margin: 6 }}
+              onClick={bookHandler}
+            >
+              Book
+            </Button>
           :
-          <Button
-            size="small"
-            color="primary"
-            variant="contained"
-            style={{ margin: 6 }}
-            onClick={bookHandler}
-          >
-            Book
-          </Button>
+          null
       }
     </AppointmentTooltip.Header>
   );

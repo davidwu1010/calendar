@@ -9,6 +9,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { BrowserRouter } from 'react-router-dom';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DayjsUtils from '@date-io/dayjs';
+import { SnackbarProvider } from 'notistack';
 
 
 ReactDOM.render(
@@ -16,7 +17,9 @@ ReactDOM.render(
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <MuiPickersUtilsProvider utils={DayjsUtils}>
-          <App />
+          <SnackbarProvider maxSnack={3}>
+            <App />
+          </SnackbarProvider>
         </MuiPickersUtilsProvider>
       </PersistGate>
     </Provider>

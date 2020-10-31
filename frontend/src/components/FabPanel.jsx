@@ -14,7 +14,8 @@ import {
   TextField,
   Typography
 } from '@material-ui/core';
-import { auth } from './firebase/firebase.utils';
+import { auth } from '../firebase/firebase.utils';
+import { useSnackbar } from 'notistack';
 
 const useStyles = makeStyles((theme) => ({
   panel: {
@@ -32,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 
 const ShareDialog = ({ dialogOpen, setDialogOpen }) => {
   const [shareLink, setShareLink] = useState('');
+  const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     const uid = auth.currentUser.uid;
     if (window.location.pathname.startsWith('/share/')) {
@@ -49,7 +51,14 @@ const ShareDialog = ({ dialogOpen, setDialogOpen }) => {
           <Grid container direction="row" alignItems="center">
             <TextField inputProps={{ spellCheck: false }} label="Link to calendar" variant="filled"
                        style={{ caretColor: 'transparent', minWidth: '400px' }} readonly value={shareLink} />
-            <Button onClick={() => navigator.clipboard.writeText(shareLink)}>Copy</Button>
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(shareLink);
+                enqueueSnackbar('Link copied.', { variant: 'success' });
+              }
+              }>
+              Copy
+            </Button>
           </Grid>
         </DialogContentText>
       </DialogContent>
