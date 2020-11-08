@@ -28,7 +28,7 @@ public class EventEntity {
     @Column
     private boolean appointmentSlot = false;
     @ElementCollection
-    private Map<String, String> invitees = new HashMap<>();
+    private Map<String, String> invitees = new HashMap<>(); // Map<uid, displayName>
 
     public long getId() {
         return id;

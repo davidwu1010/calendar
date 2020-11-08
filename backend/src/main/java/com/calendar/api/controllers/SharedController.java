@@ -27,11 +27,13 @@ public class SharedController {
         this.eventService = eventService;
     }
 
+    // Get events of the shared calendar
     @GetMapping(value = "/{shareId}/events")
     public List<EventEntity> getEvents(@PathVariable String shareId) {
         return eventService.findByUserId(shareId);
     }
 
+    // Book a slot
     @PostMapping(value = "/{shareId}/events/{eventId}")
     public ResponseEntity<EventEntity> bookSlot(@PathVariable String shareId,
         @PathVariable long eventId,
@@ -52,6 +54,7 @@ public class SharedController {
         return ResponseEntity.status(HttpStatus.OK).body(event);
     }
 
+    // cancel booking
     @DeleteMapping(value = "/{shareId}/events/{eventId}")
     public ResponseEntity<EventEntity> cancelBooking(@PathVariable String shareId,
         @PathVariable long eventId,

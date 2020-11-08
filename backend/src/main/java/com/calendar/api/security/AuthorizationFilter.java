@@ -18,6 +18,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         this.firebaseAuth = firebaseAuth;
     }
 
+    // Verify JWT token and extract uid of the sender
     @Override
     protected void doFilterInternal(HttpServletRequest request,
         HttpServletResponse response, FilterChain filterChain)

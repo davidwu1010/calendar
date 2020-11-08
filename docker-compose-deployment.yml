@@ -1,0 +1,11 @@
+version: "3"
+services:
+  nginx:
+    depends_on:
+        - springboot
+    image: 177032586869.dkr.ecr.eu-west-1.amazonaws.com/calendar:frontend
+    ports:
+        - "80:80"
+        - "443:443"
+  springboot:
+      image: 177032586869.dkr.ecr.eu-west-1.amazonaws.com/calendar:springboot
