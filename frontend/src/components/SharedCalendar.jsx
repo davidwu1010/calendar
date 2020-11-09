@@ -4,7 +4,8 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import { EditingState, IntegratedEditing, ViewState } from '@devexpress/dx-react-scheduler';
 import {
-  useParams
+  useParams,
+  useHistory
 } from 'react-router-dom';
 import {
   Scheduler,
@@ -30,6 +31,7 @@ import { selectEvents } from '../redux/events/events.selector';
 import { setEvents } from '../redux/events/events.actions';
 import { connect } from 'react-redux';
 import TooltipHeader from './TootipHeader';
+import { selectCurrentUser } from '../redux/user/user.selectors';
 
 const Appointment = ({ children, style, data, ...restProps }) => (
   <Appointments.Appointment
@@ -43,9 +45,14 @@ const Appointment = ({ children, style, data, ...restProps }) => (
 );
 
 
-const SharedCalendar = ({ events, setEvents, match }) => {
+const SharedCalendar = ({ events, setEvents, currentUser }) => {
   const { shareId } = useParams();
+  const history = useHistory();
   useEffect(() => {
+      if (shareId === currentUser.id) {
+        history.push('/');
+      }
+
       const fetchEvents = async () => {
         const token = await auth.currentUser.getIdToken(true);
         const response = await axios.get(`/api/shared/${shareId}/events/`, {
@@ -145,7 +152,8 @@ const SharedCalendar = ({ events, setEvents, match }) => {
 };
 
 const mapStateToProps = createStructuredSelector({
-  events: selectEvents
+  events: selectEvents,
+  currentUser: selectCurrentUser
 });
 
 const mapDispatchToProps = dispatch => ({
