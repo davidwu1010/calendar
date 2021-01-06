@@ -18,25 +18,25 @@ public class EventServiceImpl implements EventService {
         this.eventRepository = eventRepository;
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly=true)
     @Override
     public List<EventEntity> findByUserId(String userId) {
         return eventRepository.findByUserId(userId);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(readOnly=true)
     @Override
     public EventEntity findById(long eventId) {
         return eventRepository.findById(eventId).orElse(null);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     @Override
     public void save(EventEntity event) {
         eventRepository.save(event);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     @Override
     public void delete(long eventId) {
         eventRepository.deleteEventEntityById(eventId);
